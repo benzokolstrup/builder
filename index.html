@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Builder Tool</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            text-decoration: none;
+            list-style: none;
+            user-select: none;
+        }
+        .cube{
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            top: calc(50% - 16px);
+            left: calc(50% - 16px);
+            border: 1px solid #000;
+            cursor: grab;
+        }
+        .circle{
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            top: calc(50% - 16px);
+            left: calc(50% - 16px);
+            border: 1px solid #000;
+            border-radius: 50%;
+            cursor: grab;
+        }
+        .button-container{
+            width: 500px;
+            height: 50px;
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button{
+            width: 170px;
+            height: 40px;
+            color: #fff;
+            background-color: #ad4747;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 2px 0 rgb(0 0 0 / 30%);
+            font-size: 1em;
+            font-weight: 900;
+            cursor: pointer;
+        }
+    </style>
+<body>
+    <div class="button-container">
+        <button class="create">Create cube</button>
+        <button class="delete">Delete cube</button>
+    </div>
+    <script defer>
+        let shapes = [];
+        class Cube {
+            constructor(top, left, id, color, shape, element){
+                this.top = top;
+                this.left = left;
+                this.id = id;
+                this.color = color;
+                this.shape = shape;
+            }
+        }
+        if(localStorage.getItem('shapes') == null) {
+            console.log('Nothing to load');
+        }else{
+            console.log('Welcome back!');
+            shapes = JSON.parse(localStorage.getItem('shapes'));
+            const loadedCubes = localStorage.getItem('shapes');
+            shapes.forEach(obj => {
+                loadCubes(obj.top, obj.left, obj.id, obj.color, obj.shape)
+            });
+        }
+        window.addEventListener('mousedown', (e) => {
+            if(e.target.closest('.dragable')){
+                dragElement(e.target.closest('.dragable'), e.clientY, e.clientX);
+            }
+        });
+        function dragElement(element, heightPos, widthPos){
+            window.addEventListener('mousemove', startDragElement);
+            window.addEventListener('mouseup', stopDragElement);
+            let elementTopPos = heightPos - element.offsetTop;
+            let elementLeftPos = widthPos - element.offsetLeft;
+            element.style.cursor = 'grabbing';
+            function startDragElement(e){
+                element.style.top = (e.clientY - elementTopPos) + 'px';
+                element.style.left = (e.clientX - elementLeftPos) + 'px';
+            };
+            function stopDragElement(){
+                let currentCube = shapes.find(cube => cube.id == element.dataset.id);
+                element.dataset.top = element.style.top;
+                element.dataset.left = element.style.left;
+                currentCube.top = element.style.top;
+                currentCube.left = element.style.left;
+                localStorage.setItem('shapes', JSON.stringify(shapes));
+                element.style.cursor = 'grab';
+                window.removeEventListener('mousemove', startDragElement);
+                window.removeEventListener('mouseup', stopDragElement);
+            };
+        }
+        function initCube(){
+            const cube = new Cube('0', '0', Date.now(), '#333', 'Cube');
+            let newCube = document.createElement('div');
+            newCube.dataset.top = cube.top;
+            newCube.dataset.left = cube.left;
+            newCube.dataset.shape = cube.shape;
+            newCube.dataset.id = cube.id;
+            newCube.dataset.color = cube.color;
+            newCube.style.backgroundColor = cube.color;
+            newCube.classList.add('cube','dragable');
+            document.body.append(newCube);
+            shapes.push(cube);
+            localStorage.setItem('shapes', JSON.stringify(shapes));
+        }
+        function loadCubes(top, left, id, color, shape){
+            const cube = new Cube(top, left, id, color, shape);
+            let loadedCube = document.createElement('div');
+            loadedCube.dataset.top = cube.top;
+            loadedCube.dataset.left = cube.left;
+            loadedCube.dataset.shape = cube.shape;
+            loadedCube.dataset.id = cube.id;
+            loadedCube.dataset.color = cube.color;
+            loadedCube.style.top = cube.top;
+            loadedCube.style.left = cube.left;
+            loadedCube.style.backgroundColor = cube.color;
+            loadedCube.classList.add('cube','dragable');
+            document.body.append(loadedCube);
+        }
+    </script>
+     <script defer>
+         document.querySelector('.create').addEventListener('click', (e) => {
+            initCube();
+        });
+        let delBtn = document.querySelector('.delete');
+            delBtn.addEventListener('click', (e) => {
+                window.addEventListener('click', (e) => {
+                    if(e.target.closest('.cube')){
+                        deleteShape(e.target.closest('.cube'));
+                    }
+                });
+            });
+        function deleteShape(shape){
+            const currentCube = shapes.find(cube => cube.id == shape.dataset.id);
+            const index = shapes.indexOf(currentCube);
+            if (index > -1) {
+                shapes.splice(index, 1);
+            }
+            shape.remove();
+            localStorage.setItem('shapes', JSON.stringify(shapes));
+        }
+    </script>
+</html>
