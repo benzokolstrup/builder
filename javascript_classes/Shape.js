@@ -7,7 +7,7 @@ class Shape {
     constructor(width, height, radius, top, left, color, id){
         this.width = width;
         this.height = height;
-        this.radius
+        this.radius = radius;
         this.top = top;
         this.left = left;
         this.color = color;
