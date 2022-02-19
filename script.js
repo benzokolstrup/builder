@@ -26,7 +26,6 @@ function activateCreatorTool(){
     creatorModule.style.display = 'block';
     window.addEventListener('click', createShape);
 }
-
 function activateMoveTool(){
     removeAllTools();
     document.querySelectorAll('.dragable').forEach(element => {
@@ -34,17 +33,14 @@ function activateMoveTool(){
     });
     window.addEventListener('mousedown', dragElement);
 }
-
 function activateDeleteTool(){
     removeAllTools();
     window.addEventListener('click', deleteElement);
 }
-
 function activateSelectTool(){
     removeAllTools();
     window.addEventListener('click', selectShape);
 }
-
 function removeAllTools(){
     creatorModule.style.display = 'none';
     document.querySelectorAll('.dragable').forEach(element => {
