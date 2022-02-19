@@ -14,50 +14,45 @@ toolDelete.addEventListener('click', activateDeleteTool);
 toolSelect.addEventListener('click', activateSelectTool);
 
 window.addEventListener('keydown', (e) => {
-    if(e.key == 'v') activateMoveTool();
+    if(e.key == 'm') activateMoveTool();
+    if(e.key == 'v') activateSelectTool();
     if(e.key == 'c') activateCreatorTool();
     if(e.key == 'x') activateDeleteTool();
 });
 
 // Every function deactivates the other tools
 function activateCreatorTool(){
+    removeAllTools();
     creatorModule.style.display = 'block';
-    document.querySelectorAll('.dragable').forEach(element => {
-        element.style.cursor = 'auto';
-    });
     window.addEventListener('click', createShape);
-    window.removeEventListener('mousedown', dragElement);
-    window.removeEventListener('mousedown', deleteElement);
-    window.removeEventListener('click', selectShape);
 }
+
 function activateMoveTool(){
-    creatorModule.style.display = 'none';
+    removeAllTools();
     document.querySelectorAll('.dragable').forEach(element => {
         element.style.cursor = 'grab';
     });
     window.addEventListener('mousedown', dragElement);
-    window.removeEventListener('click', createShape);
-    window.removeEventListener('mousedown', deleteElement);
-    window.removeEventListener('click', selectShape);
 }
+
 function activateDeleteTool(){
-    creatorModule.style.display = 'none';
-    document.querySelectorAll('.dragable').forEach(element => {
-        element.style.cursor = 'auto';
-    });
-    window.addEventListener('mousedown', deleteElement);
-    window.removeEventListener('click', createShape);
-    window.removeEventListener('mousedown', dragElement);
-    window.removeEventListener('click', selectShape);
+    removeAllTools();
+    window.addEventListener('click', deleteElement);
 }
+
 function activateSelectTool(){
+    removeAllTools();
+    window.addEventListener('click', selectShape);
+}
+
+function removeAllTools(){
     creatorModule.style.display = 'none';
     document.querySelectorAll('.dragable').forEach(element => {
         element.style.cursor = 'auto';
     });
-    window.addEventListener('click', selectShape);
-    window.removeEventListener('mousedown', deleteElement);
+    window.removeEventListener('click', deleteElement);
     window.removeEventListener('click', createShape);
+    window.removeEventListener('click', selectShape);
     window.removeEventListener('mousedown', dragElement);
 }
 
@@ -111,6 +106,37 @@ if(JSON.parse(localStorage.getItem('shapes')) != null){
     });
 }
 
+// Function that is creating the shape based on the user inputs and click position
+function createShape(e){
+    if(e.target.closest('.builder-backdrop') || e.target.closest('.shape')){
+        // Getting all variables needed to create the shape
+        const shapeWidth = document.querySelector('input#width').value;
+        const shapeHeight = document.querySelector('input#height').value;
+        const shapeRadius = document.querySelector('input#radius').value;
+        // Stop if width or height is 0
+        if(shapeWidth <= 0 || shapeHeight <= 0) return;
+        const shapeColor = document.querySelector('input#color').value;
+        const shapeBorderWidth = document.querySelector('input#borderWidth').value;
+        const shapeBorderColor = document.querySelector('input#borderColor').value;
+        const topPos = e.clientY - (shapeHeight / 2);
+        const leftPos = e.clientX - (shapeWidth / 2);
+        const shapeId = Date.now();
+        const shape = new Shape(shapeWidth, shapeHeight, shapeRadius, topPos, leftPos, shapeBorderWidth, shapeBorderColor, shapeColor, shapeId);
+        shape.createShape();
+        shapes.push(shape);
+        localStorage.setItem('shapes', JSON.stringify(shapes));
+    }
+}
+
+// Function that will remove a shape from the DOM and local storage when clicked on.
+function deleteElement(e){
+    if(e.target.closest('.shape')){
+        // Find the specific element that was clicked, and remove it from the array
+        const currentShape = shapes.find(shape => shape.id == e.target.dataset.id);
+        currentShape.deleteShape(e, currentShape);
+    }
+}
+
 // Function that allows to select one or more shapes
 function selectShape(e){
     if(e.target.closest('.shape')){
@@ -148,45 +174,5 @@ function dragElement(e){
             window.removeEventListener('mousemove', startDragElement);
             window.removeEventListener('mouseup', stopDragElement);
         };
-    }
-}
-// Function that is creating the shape based on the user inputs and click position
-function createShape(e){
-    if(e.target.closest('.builder-backdrop') || e.target.closest('.shape')){
-        // Getting all variables needed to create the shape
-        const shapeWidth = document.querySelector('input#width').value;
-        const shapeHeight = document.querySelector('input#height').value;
-        const shapeRadius = document.querySelector('input#radius').value;
-        // Stop if width or height is 0
-        if(shapeWidth <= 0 || shapeHeight <= 0) return;
-        const shapeColor = document.querySelector('input#color').value;
-        const shapeBorderWidth = document.querySelector('input#borderWidth').value;
-        const shapeBorderColor = document.querySelector('input#borderColor').value;
-        const topPos = e.clientY - (shapeHeight / 2);
-        const leftPos = e.clientX - (shapeWidth / 2);
-        const shapeId = Date.now();
-        const shape = new Shape(shapeWidth, shapeHeight, shapeRadius, topPos, leftPos, shapeBorderWidth, shapeBorderColor, shapeColor, shapeId);
-        shape.createShape();
-        shapes.push(shape);
-        localStorage.setItem('shapes', JSON.stringify(shapes));
-    }
-}
-
-// Function that will remove a shape from the DOM and local storage when clicked on.
-function deleteElement(e){
-    if(e.target.closest('.shape')){
-        // Find the specific element that was clicked, and remove it from the array
-        const currentShape = shapes.find(shape => shape.id == e.target.dataset.id);
-        const index = shapes.indexOf(currentShape);
-        if (index > -1) {
-            shapes.splice(index, 1);
-        }
-        e.target.remove();
-        // If shapes array is empty when an element is removed, then also remove it from local storage
-        if(shapes.length == 0){
-            localStorage.removeItem('shapes');
-        }else{
-            localStorage.setItem('shapes', JSON.stringify(shapes));
-        }
     }
 }

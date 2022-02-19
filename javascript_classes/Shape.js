@@ -1,8 +1,5 @@
-// Init classes
-/*
-    Classes future ideas
-    - Textfield
-*/
+// Shape class and contructor
+
 class Shape {
     constructor(width, height, radius, top, left, borderWidth, borderColor, color, id){
         this.width = width;
@@ -29,5 +26,17 @@ class Shape {
         shape.style.backgroundColor = `#${this.color}`;
         shape.classList.add('shape', 'dragable');
         document.body.append(shape);
+    }
+    deleteShape(e, currentShape){
+        const index = shapes.indexOf(currentShape);
+        if (index > -1) {
+            shapes.splice(index, 1);
+        }
+        e.target.remove();
+        if(shapes.length == 0){
+            localStorage.removeItem('shapes');
+        }else{
+            localStorage.setItem('shapes', JSON.stringify(shapes));
+        }
     }
 }
