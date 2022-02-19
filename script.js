@@ -101,6 +101,16 @@ document.querySelectorAll('[data-onlyHex]').forEach(input => {
     });
 });
 
+// Check local storage and create elements 
+if(JSON.parse(localStorage.getItem('shapes')) != null){
+    let storageShapes = JSON.parse(localStorage.getItem('shapes'));
+    storageShapes.forEach(obj => {
+        const shape = new Shape(obj.width, obj.height, obj.radius, obj.top, obj.left, obj.borderWidth, obj.borderColor, obj.color, obj.id);
+        shapes.push(shape);
+        shape.createShape();
+    });
+}
+
 // Function that allows to select one or more shapes
 function selectShape(e){
     if(e.target.closest('.shape')){
@@ -140,7 +150,6 @@ function dragElement(e){
         };
     }
 }
-
 // Function that is creating the shape based on the user inputs and click position
 function createShape(e){
     if(e.target.closest('.builder-backdrop') || e.target.closest('.shape')){
@@ -156,26 +165,10 @@ function createShape(e){
         const topPos = e.clientY - (shapeHeight / 2);
         const leftPos = e.clientX - (shapeWidth / 2);
         const shapeId = Date.now();
-
-        // Creating object, adding it to an array and adding to local storage
-        const shape = new Shape(shapeWidth, shapeHeight, shapeRadius, topPos, leftPos, shapeColor, shapeId);
+        const shape = new Shape(shapeWidth, shapeHeight, shapeRadius, topPos, leftPos, shapeBorderWidth, shapeBorderColor, shapeColor, shapeId);
+        shape.createShape();
         shapes.push(shape);
         localStorage.setItem('shapes', JSON.stringify(shapes));
-
-        // Creating element based on the variables and appending to body
-        let newShape = document.createElement('div');
-        newShape.dataset.id = shapeId;
-        newShape.style.position = `absolute`;
-        newShape.style.width = `${shapeWidth}px`;
-        newShape.style.height = `${shapeHeight}px`;
-        newShape.style.borderRadius = `${shapeRadius}px`;
-        // Don't set border i width is 0
-        if(shapeBorderWidth != 0 || shapeBorderWidth > 0) newShape.style.border = `${shapeBorderWidth}px #${shapeBorderColor} solid`;
-        newShape.style.top = `${topPos}px`;
-        newShape.style.left = `${leftPos}px`;
-        newShape.style.backgroundColor = '#' + shapeColor;
-        newShape.classList.add('shape', 'dragable');
-        document.body.append(newShape);
     }
 }
 
