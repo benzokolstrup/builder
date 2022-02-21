@@ -3,9 +3,13 @@ const toolCreate = document.querySelector('[data-toolCreate]');
 const toolDelete = document.querySelector('[data-toolDelete]');
 const toolMove = document.querySelector('[data-toolMove]');
 const toolSelect = document.querySelector('[data-toolSelect]');
+const backdrop = document.querySelector('.builder-backdrop');
 
 let creatorModule = document.querySelector('[data-creatorModule]');
+
 let shapes = [];
+let holdingShift = false;
+let groupId = undefined;
 
 // Init tool activation functions
 toolCreate.addEventListener('click', activateCreatorTool);
@@ -14,11 +18,22 @@ toolDelete.addEventListener('click', activateDeleteTool);
 toolSelect.addEventListener('click', activateSelectTool);
 
 window.addEventListener('keydown', (e) => {
+    if(e.key == 'Shift') holdShiftKey();
     if(e.key == 'm') activateMoveTool();
     if(e.key == 'v') activateSelectTool();
     if(e.key == 'c') activateCreatorTool();
     if(e.key == 'x') activateDeleteTool();
 });
+window.addEventListener('keyup', (e) => {
+    if(e.key == 'Shift') stopHoldShiftKey();
+});
+
+function holdShiftKey(e){
+    holdingShift = true;
+}
+function stopHoldShiftKey(e){
+    holdingShift = false;
+}
 
 // Every function deactivates the other tools
 function activateCreatorTool(){
@@ -28,6 +43,7 @@ function activateCreatorTool(){
 }
 function activateMoveTool(){
     removeAllTools();
+    backdrop.style.cursor = 'grab';
     document.querySelectorAll('.dragable').forEach(element => {
         element.style.cursor = 'grab';
     });
@@ -46,6 +62,7 @@ function removeAllTools(){
     document.querySelectorAll('.dragable').forEach(element => {
         element.style.cursor = 'auto';
     });
+    backdrop.style.cursor = 'auto';
     window.removeEventListener('click', deleteElement);
     window.removeEventListener('click', createShape);
     window.removeEventListener('click', selectShape);
@@ -133,13 +150,6 @@ function deleteElement(e){
     }
 }
 
-// Function that allows to select one or more shapes
-function selectShape(e){
-    if(e.target.closest('.shape')){
-        e.target.style.outline = '#4381d1 solid 3px';
-    }
-}
-
 // Function that allows elements with the call 'dragable', to be dragged with the mouse
 function dragElement(e){
     if(e.target.closest('.dragable')){
@@ -171,4 +181,57 @@ function dragElement(e){
             window.removeEventListener('mouseup', stopDragElement);
         };
     }
+}
+
+// Function that allows to select one or more elements
+function selectShape(e){
+    if(e.target.closest('.shape')){
+        if(groupId == undefined){
+            groupId = generateGroupId();
+        }
+        if(holdingShift == false){
+            document.querySelectorAll('.dragable').forEach(element => {
+                element.style.outline = 'none';
+                element.removeAttribute('data-group');
+            });
+            groupId = generateGroupId();
+        }
+        e.target.style.outline = '#4381d1 solid 3px';
+        const currentShape = shapes.find(shape => shape.id == e.target.dataset.id);
+        currentShape.groupId = groupId;
+        e.target.dataset.group = groupId;
+    }
+    if(e.target.classList.contains('builder-backdrop') && holdingShift == false){
+        document.querySelectorAll('.dragable').forEach(element => {
+            element.style.outline = 'none';
+            element.removeAttribute('data-group');
+        });
+        groupId = undefined;
+    }
+}
+
+
+
+
+
+
+// Function that generates a random ID based with a '-' every 6 charracter
+// Should experiment with export/import
+function generateGroupId(){
+    const groupIdCharCodes = [];
+    const groupIdLength = 24;
+    function arrayFromLowToHigh(low, high){
+        const array = []
+        for(let i = low; i <= high; i++){
+            array.push(i);
+        }
+        return array;
+    }
+    const GROUP_ID_CHAR_CODES = arrayFromLowToHigh(48, 57).concat(arrayFromLowToHigh(65, 90)).concat(arrayFromLowToHigh(97, 122));
+    for(let i = 0; i < groupIdLength; i++){
+        const randomCharCode = GROUP_ID_CHAR_CODES[Math.floor(Math.random() * GROUP_ID_CHAR_CODES.length)];
+        if (i && (i % 6 == 0)) groupIdCharCodes.push('-');
+        groupIdCharCodes.push(String.fromCharCode(randomCharCode));
+    }
+    return groupIdCharCodes.join('');
 }
