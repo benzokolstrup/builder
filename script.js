@@ -9,6 +9,7 @@ let creatorModule = document.querySelector('[data-creatorModule]');
 
 let shapes = [];
 let holdingShift = false;
+let holdingControl = false;
 let groupId = undefined;
 
 // Init tool activation functions
@@ -19,6 +20,8 @@ toolSelect.addEventListener('click', activateSelectTool);
 
 window.addEventListener('keydown', (e) => {
     if(e.key == 'Shift') holdShiftKey();
+    if(e.key == 'Meta') holdControlKey();
+    if(e.key == 'Escape') reset();
     if(e.key == 'm') activateMoveTool();
     if(e.key == 'v') activateSelectTool();
     if(e.key == 'c') activateCreatorTool();
@@ -26,6 +29,7 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => {
     if(e.key == 'Shift') stopHoldShiftKey();
+    if(e.key == 'Meta') stopHoldControlKey();
 });
 
 function holdShiftKey(e){
@@ -33,6 +37,16 @@ function holdShiftKey(e){
 }
 function stopHoldShiftKey(e){
     holdingShift = false;
+}
+function holdControlKey(e){
+    holdingControl = true;
+}
+function stopHoldControlKey(e){
+    holdingControl = false;
+}
+function reset(){
+    clearGroup();
+    groupId = undefined;
 }
 
 // Every function deactivates the other tools
@@ -55,17 +69,21 @@ function activateDeleteTool(){
 }
 function activateSelectTool(){
     removeAllTools();
-    window.addEventListener('click', selectShape);
+    window.addEventListener('mousedown', selectShape);
 }
 function removeAllTools(){
     creatorModule.style.display = 'none';
     document.querySelectorAll('.dragable').forEach(element => {
         element.style.cursor = 'auto';
     });
+    if(document.querySelectorAll('[data-group]').length == 1){
+        clearGroup();
+        groupId = undefined;
+    }
     backdrop.style.cursor = 'auto';
     window.removeEventListener('click', deleteElement);
     window.removeEventListener('click', createShape);
-    window.removeEventListener('click', selectShape);
+    window.removeEventListener('mousedown', selectShape);
     window.removeEventListener('mousedown', dragElement);
 }
 
@@ -144,6 +162,7 @@ function createShape(e){
 // Function that will remove a shape from the DOM and local storage when clicked on.
 function deleteElement(e){
     if(e.target.closest('.shape')){
+        console.log(e.target)
         // Find the specific element that was clicked, and remove it from the array
         const currentShape = shapes.find(shape => shape.id == e.target.dataset.id);
         currentShape.deleteShape(e, currentShape);
@@ -157,13 +176,29 @@ function dragElement(e){
         const heightPos = e.clientY;
         const widthPos = e.clientX;
         let element = e.target.closest('.dragable');
+        element.style.cursor = 'grabbing';
+        if(groupId != undefined && e.target.hasAttribute('data-group')){
+            let groupContainer = document.createElement('div');        
+            groupContainer.style.position = `fixed`;
+            groupContainer.style.zIndex = `50`;
+            groupContainer.style.width = `100vw`;
+            groupContainer.style.height = `100vh`;
+            groupContainer.style.top = `0px`;
+            groupContainer.style.left = `0px`;
+            groupContainer.classList.add('group-container');
+            document.body.append(groupContainer);
+            document.querySelectorAll('[data-group]').forEach(shape => {
+                groupContainer.append(shape);
+            });
+            element = e.target.closest('.group-container');
+        }
         // Defining element center current position
         let elementTopPos = heightPos - element.offsetTop;
         let elementLeftPos = widthPos - element.offsetLeft;
         element.style.cursor = 'grabbing';
         window.addEventListener('mousemove', startDragElement);
         window.addEventListener('mouseup', stopDragElement);
-        document.body.append(element);
+        if(groupId == undefined && document.querySelector('.group-container'))document.body.append(element);
         function startDragElement(e){
             // Setting now element position compared to mouse movement
             element.style.top = (e.clientY - elementTopPos) + 'px';
@@ -172,11 +207,26 @@ function dragElement(e){
         // When dragging stops, set element attributes and save to local storage
         function stopDragElement(){
             // Find the element that was dragged and change the object
+            if(!element.hasAttribute('data-group') && !document.querySelector('.group-container')){
             let currentShape = shapes.find(shape => shape.id == element.dataset.id);
-            currentShape.top = parseInt(element.style.top);
-            currentShape.left = parseInt(element.style.left);
+            currentShape.top = element.offsetTop;
+            currentShape.left = element.offsetLeft;
             localStorage.setItem('shapes', JSON.stringify(shapes));
             element.style.cursor = 'grab';
+            }
+            if(groupId != undefined && e.target.hasAttribute('data-group')){
+                document.querySelectorAll('[data-group]').forEach(groupElement => {
+                    let currentShape = shapes.find(shape => shape.id == groupElement.dataset.id);
+                    document.body.append(groupElement);
+                    groupElement.style.cursor = 'grab';
+                    groupElement.style.top = `${element.offsetTop + groupElement.offsetTop}px`;
+                    groupElement.style.left = `${element.offsetLeft + groupElement.offsetLeft}px`;
+                    currentShape.top = groupElement.offsetTop;
+                    currentShape.left = groupElement.offsetLeft;
+                });
+                localStorage.setItem('shapes', JSON.stringify(shapes));
+                element.remove();
+            }
             window.removeEventListener('mousemove', startDragElement);
             window.removeEventListener('mouseup', stopDragElement);
         };
@@ -185,35 +235,75 @@ function dragElement(e){
 
 // Function that allows to select one or more elements
 function selectShape(e){
-    if(e.target.closest('.shape')){
+    window.addEventListener('mousemove', startGroupSelection);
+    window.addEventListener('mouseup', stopGroupSelection);
+    const heightPos = e.clientY;
+    const widthPos = e.clientX;
+    let selectionArea = document.createElement('div');
+    selectionArea.style.zIndex = `50`; 
+    selectionArea.style.top = `${heightPos}px`;
+    selectionArea.style.left = `${widthPos}px`;
+    selectionArea.classList.add('selection-area');
+    selectionArea.style.transform = 'scale(-1, 1)';
+    function startGroupSelection(e){
+        if(e.clientX - widthPos > 0){
+            selectionArea.style.left = `${widthPos}px`;
+            selectionArea.style.right = `unset`;
+        }else{
+            selectionArea.style.left = `unset`;
+            selectionArea.style.right = `${(window.innerWidth - widthPos)}px`;
+        }
+        if(e.clientY - heightPos > 0){
+            selectionArea.style.top = `${heightPos}px`;
+            selectionArea.style.bottom = `unset`;
+        }else{
+            selectionArea.style.top = `unset`;
+            selectionArea.style.bottom = `${(window.innerHeight - heightPos)}px`;
+        }
+        selectionArea.style.width = `${Math.abs(e.clientX - widthPos)}px`;
+        selectionArea.style.height = `${Math.abs(e.clientY - heightPos)}px`;
+        document.body.append(selectionArea);
+    }
+    function stopGroupSelection(){
         if(groupId == undefined){
             groupId = generateGroupId();
         }
-        if(holdingShift == false){
-            document.querySelectorAll('.dragable').forEach(element => {
-                element.style.outline = 'none';
-                element.removeAttribute('data-group');
-            });
+        document.querySelectorAll('.dragable').forEach(element => {
+            if((element.offsetLeft + element.offsetWidth) >= selectionArea.offsetLeft && element.offsetLeft <= (selectionArea.offsetLeft + selectionArea.offsetWidth) && (element.offsetTop + element.offsetHeight) >= selectionArea.offsetTop && element.offsetTop <= (selectionArea.offsetTop + selectionArea.offsetHeight)){
+                element.style.outline = '#4381d1 solid 3px';
+                element.dataset.group = groupId;
+            }
+        });
+        selectionArea.remove();
+        window.removeEventListener('mousemove', startGroupSelection);
+        window.removeEventListener('mouseup', stopGroupSelection);
+    }
+    if(e.target.closest('.shape')){
+        if(holdingShift == false && holdingControl == false){
+            clearGroup();
             groupId = generateGroupId();
         }
-        e.target.style.outline = '#4381d1 solid 3px';
-        const currentShape = shapes.find(shape => shape.id == e.target.dataset.id);
-        currentShape.groupId = groupId;
-        e.target.dataset.group = groupId;
+        if(holdingControl == true){
+            e.target.style.outline = 'none';
+            e.target.dataset.group = groupId;
+            e.target.removeAttribute('data-group');
+        }else{
+            e.target.style.outline = '#4381d1 solid 3px';
+            e.target.dataset.group = groupId;
+        }
+        
     }
     if(e.target.classList.contains('builder-backdrop') && holdingShift == false){
-        document.querySelectorAll('.dragable').forEach(element => {
-            element.style.outline = 'none';
-            element.removeAttribute('data-group');
-        });
+        clearGroup();
         groupId = undefined;
     }
 }
-
-
-
-
-
+function clearGroup(){
+    document.querySelectorAll('.dragable').forEach(element => {
+        element.style.outline = 'none';
+        element.removeAttribute('data-group');
+    });
+}
 
 // Function that generates a random ID based with a '-' every 6 charracter
 // Should experiment with export/import
