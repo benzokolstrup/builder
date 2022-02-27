@@ -256,7 +256,11 @@ function selectShape(e){
             if(groupId == undefined) groupId = generateGroupId();
             document.querySelectorAll('.shape').forEach(element => {
                 if((element.offsetLeft + element.offsetWidth) >= selectionArea.offsetLeft && element.offsetLeft <= (selectionArea.offsetLeft + selectionArea.offsetWidth) && (element.offsetTop + element.offsetHeight) >= selectionArea.offsetTop && element.offsetTop <= (selectionArea.offsetTop + selectionArea.offsetHeight)){
-                    addToGroup(element);
+                    if(element.classList.contains('selected') && holdingShift == true){
+                        removeFromGroup(element);
+                    }else{
+                        addToGroup(element);
+                    }
                 }
             });
             selectionArea.remove();
