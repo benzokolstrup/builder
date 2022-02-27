@@ -12,23 +12,25 @@
     <!--Fonts-->
 </head>
 <body>
-    <div class="builder-backdrop"></div>
-    <div class="selection-area" data-previewCursor></div>
-    <div class="toolbar">
-        <div class="tool select" data-toolSelect>
-            <i class="fas fa-arrow-pointer"></i>
-        </div>
-        <div class="tool select" data-toolMove>
-            <i class="fas fa-hand"></i>
-        </div>
-        <div class="tool create" data-toolCreate>
-            <i class="fas fa-pen-to-square"></i>
-        </div>
-        <div class="tool delete" data-toolDelete>
-            <i class="fas fa-trash-can"></i>
-        </div>
-        <div class="tool create" data-toolCreate>
-            <i class="fas fa-keyboard"></i>
+    <div class="navbar">
+        <div class="toolbar">
+            <div class="tool select" data-toolSelect>
+                <i class="fas fa-arrow-pointer"></i>
+            </div>
+            <!--
+            <div class="tool select" data-toolMove>
+                <i class="fas fa-hand"></i>
+            </div>
+            -->
+            <div class="tool create" data-toolCreate>
+                <i class="fas fa-pen-to-square"></i>
+            </div>
+            <div class="tool delete" data-toolDelete>
+                <i class="fas fa-trash-can"></i>
+            </div>
+            <div class="tool create" data-toolCreate>
+                <i class="fas fa-keyboard"></i>
+            </div>
         </div>
     </div>
     <div class="creator" data-creatorModule>
@@ -46,8 +48,8 @@
                     <input type="text" id="height" name="height" value="0" maxlength="6" data-onlyNumber>
                 </div>
                 <div class="input-container">
-                    <label for="radius">R</label>
-                    <input type="text" id="radius" name="radius" value="0" maxlength="6" data-onlyNumber>
+                    <label for="borderRadius">R</label>
+                    <input type="text" id="borderRadius" name="borderRadius" value="0" maxlength="6" data-onlyNumber>
                 </div>
             </div>
             <div class="creator-section">
@@ -55,8 +57,8 @@
                     <span>Background</span>
                 </div>
                 <div class="input-container">
-                    <label for="color">#</label>
-                    <input type="text" id="color" name="color" value="efefef" maxlength="6" data-onlyHex>
+                    <label for="backgroundColor">#</label>
+                    <input type="text" id="backgroundColor" name="backgroundColor" value="efefef" maxlength="6" data-onlyHex>
                 </div>
             </div>
             <div class="creator-section">
@@ -74,6 +76,7 @@
             </div>
         </div>
     </div>
+    <div class="builder-backdrop"></div>
     <script src="javascript_classes/Shape.js"></script>
     <script src="script.js"></script>
 </body>

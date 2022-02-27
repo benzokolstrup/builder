@@ -3,33 +3,37 @@ const toolCreate = document.querySelector('[data-toolCreate]');
 const toolDelete = document.querySelector('[data-toolDelete]');
 const toolMove = document.querySelector('[data-toolMove]');
 const toolSelect = document.querySelector('[data-toolSelect]');
+const tools = document.querySelectorAll('.tool');
+
 const backdrop = document.querySelector('.builder-backdrop');
+
+const inputWidth = document.querySelector('input#width');
+const inputHeight = document.querySelector('input#height');
+const inputBorderRadius = document.querySelector('input#borderRadius');
+const inputBackgroundColor = document.querySelector('input#backgroundColor');
+const inputBorderWidth = document.querySelector('input#borderWidth');
+const inputBorderColor = document.querySelector('input#borderColor');
 
 let creatorModule = document.querySelector('[data-creatorModule]');
 
 let shapes = [];
 let holdingShift = false;
-let holdingControl = false;
 let groupId = undefined;
 
 // Init tool activation functions
 toolCreate.addEventListener('click', activateCreatorTool);
-toolMove.addEventListener('click', activateMoveTool);
 toolDelete.addEventListener('click', activateDeleteTool);
 toolSelect.addEventListener('click', activateSelectTool);
 
 window.addEventListener('keydown', (e) => {
     if(e.key == 'Shift') holdShiftKey();
-    if(e.key == 'Meta') holdControlKey();
     if(e.key == 'Escape') reset();
-    if(e.key == 'm') activateMoveTool();
     if(e.key == 'v') activateSelectTool();
     if(e.key == 'c') activateCreatorTool();
     if(e.key == 'x') activateDeleteTool();
 });
 window.addEventListener('keyup', (e) => {
     if(e.key == 'Shift') stopHoldShiftKey();
-    if(e.key == 'Meta') stopHoldControlKey();
 });
 
 function holdShiftKey(e){
@@ -37,12 +41,6 @@ function holdShiftKey(e){
 }
 function stopHoldShiftKey(e){
     holdingShift = false;
-}
-function holdControlKey(e){
-    holdingControl = true;
-}
-function stopHoldControlKey(e){
-    holdingControl = false;
 }
 function reset(){
     clearGroup();
@@ -52,39 +50,30 @@ function reset(){
 // Every function deactivates the other tools
 function activateCreatorTool(){
     removeAllTools();
-    creatorModule.style.display = 'block';
-    window.addEventListener('click', createShape);
-}
-function activateMoveTool(){
-    removeAllTools();
-    backdrop.style.cursor = 'grab';
-    document.querySelectorAll('.dragable').forEach(element => {
-        element.style.cursor = 'grab';
-    });
-    window.addEventListener('mousedown', dragElement);
+    toolCreate.classList.add('active');
+    window.addEventListener('mousedown', createShape);
 }
 function activateDeleteTool(){
     removeAllTools();
-    window.addEventListener('click', deleteElement);
+    toolDelete.classList.add('active');
+    window.addEventListener('mousedown', deleteElement);
 }
 function activateSelectTool(){
     removeAllTools();
+    toolSelect.classList.add('active');
     window.addEventListener('mousedown', selectShape);
 }
 function removeAllTools(){
-    creatorModule.style.display = 'none';
-    document.querySelectorAll('.dragable').forEach(element => {
-        element.style.cursor = 'auto';
+    tools.forEach(tool => {
+        tool.classList.remove('active');
     });
     if(document.querySelectorAll('[data-group]').length == 1){
         clearGroup();
         groupId = undefined;
     }
-    backdrop.style.cursor = 'auto';
-    window.removeEventListener('click', deleteElement);
-    window.removeEventListener('click', createShape);
+    window.removeEventListener('mousedown', deleteElement);
+    window.removeEventListener('mousedown', createShape);
     window.removeEventListener('mousedown', selectShape);
-    window.removeEventListener('mousedown', dragElement);
 }
 
 // Input verification
@@ -116,6 +105,12 @@ document.querySelectorAll('[data-onlyHex]').forEach(input => {
         input.value = input.value.replace(/[^0-9a-f]/g, '');
     });
     input.addEventListener('focusout', () => {
+        verifyInputs();
+    });
+});
+
+function verifyInputs(){
+    document.querySelectorAll('[data-onlyHex]').forEach(input => {
         // If input is 0 set it to a default
         if(input.value.length == 0) input.value = 'efefef';
         // If the value only has same characters, fill the value with that character. Example: ff = ffffff
@@ -124,81 +119,165 @@ document.querySelectorAll('[data-onlyHex]').forEach(input => {
         if(input.value.length == 2) input.value = input.value.repeat(3);
         // If the input has 3 characters, add 2 of every character. Example: 4ad = 44aadd
         if(input.value.length >= 3 && input.value.length < 6) input.value = input.value.replace(/([0-9a-f])([0-9a-f])([0-9a-f]).*/,'$1$1$2$2$3$3');
-    });
-});
+    }
+)};
 
 // Check local storage and create elements 
 if(JSON.parse(localStorage.getItem('shapes')) != null){
     let storageShapes = JSON.parse(localStorage.getItem('shapes'));
     storageShapes.forEach(obj => {
-        const shape = new Shape(obj.width, obj.height, obj.radius, obj.top, obj.left, obj.borderWidth, obj.borderColor, obj.color, obj.id);
+        const shape = new Shape(obj.width, obj.height, obj.borderRadius, obj.top, obj.left, obj.borderWidth, obj.borderColor, obj.backgroundColor, obj.id);
         shapes.push(shape);
-        shape.createShape();
+        shape.create();
     });
 }
 
 // Function that is creating the shape based on the user inputs and click position
 function createShape(e){
     if(e.target.closest('.builder-backdrop') || e.target.closest('.shape')){
-        // Getting all variables needed to create the shape
-        const shapeWidth = document.querySelector('input#width').value;
-        const shapeHeight = document.querySelector('input#height').value;
-        const shapeRadius = document.querySelector('input#radius').value;
-        // Stop if width or height is 0
-        if(shapeWidth <= 0 || shapeHeight <= 0) return;
-        const shapeColor = document.querySelector('input#color').value;
-        const shapeBorderWidth = document.querySelector('input#borderWidth').value;
-        const shapeBorderColor = document.querySelector('input#borderColor').value;
-        const topPos = e.clientY - (shapeHeight / 2);
-        const leftPos = e.clientX - (shapeWidth / 2);
+        verifyInputs();
+        window.addEventListener('mousemove', startDragCreator);
+        window.addEventListener('mouseup', stopDragCreator);
+        let shapeWidth = inputWidth.value;
+        let shapeHeight = inputHeight.value;
+        const shapeBorderRadius = inputBorderRadius.value;
+        const shapeBackgroundColor = inputBackgroundColor.value;
+        const shapeBorderWidth = inputBorderWidth.value;
+        const shapeBorderColor = inputBorderColor.value;
         const shapeId = Date.now();
-        const shape = new Shape(shapeWidth, shapeHeight, shapeRadius, topPos, leftPos, shapeBorderWidth, shapeBorderColor, shapeColor, shapeId);
-        shape.createShape();
-        shapes.push(shape);
-        localStorage.setItem('shapes', JSON.stringify(shapes));
+        const valueY = e.clientY;
+        const valueX = e.clientX;
+        let topPos = valueY - (shapeHeight / 2);
+        let leftPos = valueX - (shapeWidth / 2);
+        let previewShape = document.createElement('div');
+        previewShape.style.top = `${valueY}px`;
+        previewShape.style.left = `${valueX}px`;
+        previewShape.style.background = `#${shapeBackgroundColor}`;
+        previewShape.style.border = `${shapeBorderWidth}px #${shapeBorderColor} solid`;
+        previewShape.style.borderRadius = `${shapeBorderRadius}px`;
+        previewShape.classList.add('preview-shape');
+        function startDragCreator(e){
+            if(e.clientX - valueX > 0){
+                previewShape.style.left = `${valueX}px`;
+                previewShape.style.removeProperty('right');
+            }else{
+                previewShape.style.removeProperty('left');
+                previewShape.style.right = `${(window.innerWidth - valueX)}px`;
+            }
+            if(e.clientY - valueY > 0){
+                previewShape.style.top = `${valueY}px`;
+                previewShape.style.removeProperty('bottom');
+            }else{
+                previewShape.style.removeProperty('top');
+                previewShape.style.bottom = `${(window.innerHeight - valueY)}px`;
+            }
+            previewShape.style.width = `${Math.abs(e.clientX - valueX)}px`;
+            previewShape.style.height = `${Math.abs(e.clientY - valueY)}px`;
+            document.body.append(previewShape);
+        }
+        function stopDragCreator(){
+            if(document.body.contains(previewShape)){
+                shapeWidth = previewShape.offsetWidth - (shapeBorderWidth * 2);
+                shapeHeight = previewShape.offsetHeight - (shapeBorderWidth * 2);
+                topPos = previewShape.offsetTop;
+                leftPos = previewShape.offsetLeft;
+            }
+            previewShape.remove();
+            window.removeEventListener('mousemove', startDragCreator);
+            window.removeEventListener('mouseup', stopDragCreator);
+            if(shapeWidth <= 0 || shapeHeight <= 0) return;
+            inputWidth.value = shapeWidth;
+            inputHeight.value = shapeHeight;
+            inputBorderRadius.value = shapeBorderRadius;
+            inputBackgroundColor.value = shapeBackgroundColor;
+            inputBorderWidth.value = shapeBorderWidth;
+            inputBorderColor.value = shapeBorderColor;
+            const shape = new Shape(shapeWidth, shapeHeight, shapeBorderRadius, topPos, leftPos, shapeBorderWidth, shapeBorderColor, shapeBackgroundColor, shapeId);
+            shapes.push(shape);
+            shape.create();
+            localStorage.setItem('shapes', JSON.stringify(shapes));
+        }
     }
 }
 
 // Function that will remove a shape from the DOM and local storage when clicked on.
 function deleteElement(e){
     if(e.target.closest('.shape')){
-        console.log(e.target)
-        // Find the specific element that was clicked, and remove it from the array
-        const currentShape = shapes.find(shape => shape.id == e.target.dataset.id);
-        currentShape.deleteShape(e, currentShape);
+        const shape = shapes.find(shape => shape.id == e.target.dataset.id);
+        shape.delete(e);
     }
 }
 
-// Function that allows elements with the call 'dragable', to be dragged with the mouse
-function dragElement(e){
-    if(e.target.closest('.dragable')){
-        // Getting mouse position
-        const heightPos = e.clientY;
-        const widthPos = e.clientX;
-        let element = e.target.closest('.dragable');
-        element.style.cursor = 'grabbing';
-        if(groupId != undefined && e.target.hasAttribute('data-group')){
-            let groupContainer = document.createElement('div');        
-            groupContainer.style.position = `fixed`;
-            groupContainer.style.zIndex = `50`;
-            groupContainer.style.width = `100vw`;
-            groupContainer.style.height = `100vh`;
-            groupContainer.style.top = `0px`;
-            groupContainer.style.left = `0px`;
-            groupContainer.classList.add('group-container');
-            document.body.append(groupContainer);
-            document.querySelectorAll('[data-group]').forEach(shape => {
-                groupContainer.append(shape);
-            });
-            element = e.target.closest('.group-container');
+
+
+// Function that allows to select one or more elements
+function selectShape(e){
+    const valueY = e.clientY;
+    const valueX = e.clientX;
+    if(e.target.closest('.selected') && holdingShift == true){
+        removeFromGroup(e.target);
+        return;
+    }
+    if(e.target.closest('.shape') && !e.target.closest('.selected')){
+        if(holdingShift == false){
+            clearGroup();
+            groupId = generateGroupId();
         }
+        addToGroup(e.target);
+    }
+    if(e.target.classList.contains('builder-backdrop')){
+        if(holdingShift == false) clearGroup(e);
+        window.addEventListener('mousemove', startGroupSelection);
+        window.addEventListener('mouseup', stopGroupSelection);
+        let selectionArea = document.createElement('div');
+        selectionArea.style.top = `${valueY}px`;
+        selectionArea.style.left = `${valueX}px`;
+        selectionArea.classList.add('selection-area');
+        function startGroupSelection(e){
+            if(e.clientX - valueX > 0){
+                selectionArea.style.left = `${valueX}px`;
+                selectionArea.style.right = `unset`;
+            }else{
+                selectionArea.style.left = `unset`;
+                selectionArea.style.right = `${(window.innerWidth - valueX)}px`;
+            }
+            if(e.clientY - valueY > 0){
+                selectionArea.style.top = `${valueY}px`;
+                selectionArea.style.bottom = `unset`;
+            }else{
+                selectionArea.style.top = `unset`;
+                selectionArea.style.bottom = `${(window.innerHeight - valueY)}px`;
+            }
+            selectionArea.style.width = `${Math.abs(e.clientX - valueX)}px`;
+            selectionArea.style.height = `${Math.abs(e.clientY - valueY)}px`;
+            document.body.append(selectionArea);
+        }
+        function stopGroupSelection(){
+            if(groupId == undefined) groupId = generateGroupId();
+            document.querySelectorAll('.shape').forEach(element => {
+                if((element.offsetLeft + element.offsetWidth) >= selectionArea.offsetLeft && element.offsetLeft <= (selectionArea.offsetLeft + selectionArea.offsetWidth) && (element.offsetTop + element.offsetHeight) >= selectionArea.offsetTop && element.offsetTop <= (selectionArea.offsetTop + selectionArea.offsetHeight)){
+                    addToGroup(element);
+                }
+            });
+            selectionArea.remove();
+            window.removeEventListener('mousemove', startGroupSelection);
+            window.removeEventListener('mouseup', stopGroupSelection);
+        }
+    }
+    if(e.target.closest('.selected') && holdingShift == false){
+        // Getting mouse position
+        let dragContainer = document.createElement('div');
+        dragContainer.classList.add('drag-container');
+        document.body.append(dragContainer);
+        document.querySelectorAll('[data-group]').forEach(shape => {
+            dragContainer.append(shape);
+        });
+        let element = e.target.closest('.drag-container');
         // Defining element center current position
-        let elementTopPos = heightPos - element.offsetTop;
-        let elementLeftPos = widthPos - element.offsetLeft;
-        element.style.cursor = 'grabbing';
+        let elementTopPos = valueY - element.offsetTop;
+        let elementLeftPos = valueX - element.offsetLeft;
         window.addEventListener('mousemove', startDragElement);
         window.addEventListener('mouseup', stopDragElement);
-        if(groupId == undefined && document.querySelector('.group-container'))document.body.append(element);
         function startDragElement(e){
             // Setting now element position compared to mouse movement
             element.style.top = (e.clientY - elementTopPos) + 'px';
@@ -206,19 +285,10 @@ function dragElement(e){
         };
         // When dragging stops, set element attributes and save to local storage
         function stopDragElement(){
-            // Find the element that was dragged and change the object
-            if(!element.hasAttribute('data-group') && !document.querySelector('.group-container')){
-            let currentShape = shapes.find(shape => shape.id == element.dataset.id);
-            currentShape.top = element.offsetTop;
-            currentShape.left = element.offsetLeft;
-            localStorage.setItem('shapes', JSON.stringify(shapes));
-            element.style.cursor = 'grab';
-            }
             if(groupId != undefined && e.target.hasAttribute('data-group')){
                 document.querySelectorAll('[data-group]').forEach(groupElement => {
                     let currentShape = shapes.find(shape => shape.id == groupElement.dataset.id);
                     document.body.append(groupElement);
-                    groupElement.style.cursor = 'grab';
                     groupElement.style.top = `${element.offsetTop + groupElement.offsetTop}px`;
                     groupElement.style.left = `${element.offsetLeft + groupElement.offsetLeft}px`;
                     currentShape.top = groupElement.offsetTop;
@@ -232,76 +302,18 @@ function dragElement(e){
         };
     }
 }
-
-// Function that allows to select one or more elements
-function selectShape(e){
-    window.addEventListener('mousemove', startGroupSelection);
-    window.addEventListener('mouseup', stopGroupSelection);
-    const heightPos = e.clientY;
-    const widthPos = e.clientX;
-    let selectionArea = document.createElement('div');
-    selectionArea.style.zIndex = `50`; 
-    selectionArea.style.top = `${heightPos}px`;
-    selectionArea.style.left = `${widthPos}px`;
-    selectionArea.classList.add('selection-area');
-    selectionArea.style.transform = 'scale(-1, 1)';
-    function startGroupSelection(e){
-        if(e.clientX - widthPos > 0){
-            selectionArea.style.left = `${widthPos}px`;
-            selectionArea.style.right = `unset`;
-        }else{
-            selectionArea.style.left = `unset`;
-            selectionArea.style.right = `${(window.innerWidth - widthPos)}px`;
-        }
-        if(e.clientY - heightPos > 0){
-            selectionArea.style.top = `${heightPos}px`;
-            selectionArea.style.bottom = `unset`;
-        }else{
-            selectionArea.style.top = `unset`;
-            selectionArea.style.bottom = `${(window.innerHeight - heightPos)}px`;
-        }
-        selectionArea.style.width = `${Math.abs(e.clientX - widthPos)}px`;
-        selectionArea.style.height = `${Math.abs(e.clientY - heightPos)}px`;
-        document.body.append(selectionArea);
-    }
-    function stopGroupSelection(){
-        if(groupId == undefined){
-            groupId = generateGroupId();
-        }
-        document.querySelectorAll('.dragable').forEach(element => {
-            if((element.offsetLeft + element.offsetWidth) >= selectionArea.offsetLeft && element.offsetLeft <= (selectionArea.offsetLeft + selectionArea.offsetWidth) && (element.offsetTop + element.offsetHeight) >= selectionArea.offsetTop && element.offsetTop <= (selectionArea.offsetTop + selectionArea.offsetHeight)){
-                element.style.outline = '#4381d1 solid 3px';
-                element.dataset.group = groupId;
-            }
-        });
-        selectionArea.remove();
-        window.removeEventListener('mousemove', startGroupSelection);
-        window.removeEventListener('mouseup', stopGroupSelection);
-    }
-    if(e.target.closest('.shape')){
-        if(holdingShift == false && holdingControl == false){
-            clearGroup();
-            groupId = generateGroupId();
-        }
-        if(holdingControl == true){
-            e.target.style.outline = 'none';
-            e.target.dataset.group = groupId;
-            e.target.removeAttribute('data-group');
-        }else{
-            e.target.style.outline = '#4381d1 solid 3px';
-            e.target.dataset.group = groupId;
-        }
-        
-    }
-    if(e.target.classList.contains('builder-backdrop') && holdingShift == false){
-        clearGroup();
-        groupId = undefined;
-    }
+function addToGroup(e){
+    const shape = shapes.find(shape => shape.id == e.dataset.id);
+    shape.select(e); 
+}
+function removeFromGroup(e){
+    const shape = shapes.find(shape => shape.id == e.dataset.id);
+    shape.deSelect(e);
 }
 function clearGroup(){
-    document.querySelectorAll('.dragable').forEach(element => {
-        element.style.outline = 'none';
-        element.removeAttribute('data-group');
+    groupId = undefined;
+    document.querySelectorAll('.selected').forEach(element => {
+        removeFromGroup(element);
     });
 }
 
