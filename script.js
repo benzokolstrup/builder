@@ -1,68 +1,72 @@
 // Init global variables
-const toolCreate = document.querySelector('[data-toolCreate]');
-const toolDelete = document.querySelector('[data-toolDelete]');
-const toolMove = document.querySelector('[data-toolMove]');
-const toolSelect = document.querySelector('[data-toolSelect]');
-const tools = document.querySelectorAll('.tool');
-
-const backdrop = document.querySelector('.builder-backdrop');
-
-const inputWidth = document.querySelector('input#width');
-const inputHeight = document.querySelector('input#height');
-const inputBorderRadius = document.querySelector('input#borderRadius');
-const inputBackgroundColor = document.querySelector('input#backgroundColor');
-const inputBorderWidth = document.querySelector('input#borderWidth');
-const inputBorderColor = document.querySelector('input#borderColor');
+const toolCreate = document.querySelector('[data-toolCreate]'),
+    toolDelete = document.querySelector('[data-toolDelete]'),
+    toolMove = document.querySelector('[data-toolMove]'),
+    toolSelect = document.querySelector('[data-toolSelect]'),
+    tools = document.querySelectorAll('.tool'),
+    backdrop = document.querySelector('.builder-backdrop'),
+    inputWidth = document.querySelector('input#width'),
+    inputHeight = document.querySelector('input#height'),
+    inputBorderRadius = document.querySelector('input#borderRadius'),
+    inputBackgroundColor = document.querySelector('input#backgroundColor'),
+    inputBorderWidth = document.querySelector('input#borderWidth'),
+    inputBorderColor = document.querySelector('input#borderColor');
 
 let creatorModule = document.querySelector('[data-creatorModule]');
-
 let shapes = [];
+let recentlyDeleted = [];
 let holdingShift = false;
 let groupId = undefined;
 
 // Init tool activation functions
 toolCreate.addEventListener('click', activateCreatorTool);
-toolDelete.addEventListener('click', activateDeleteTool);
 toolSelect.addEventListener('click', activateSelectTool);
 
+// Hotkey keybinds
 window.addEventListener('keydown', (e) => {
     if(e.key == 'Shift') holdShiftKey();
-    if(e.key == 'Escape') reset();
+    if(e.key == 'Escape') resetSelection();
+    if(e.key == 'Backspace') deleteSelection();
     if(e.key == 'v') activateSelectTool();
     if(e.key == 'c') activateCreatorTool();
-    if(e.key == 'x') activateDeleteTool();
 });
 window.addEventListener('keyup', (e) => {
     if(e.key == 'Shift') stopHoldShiftKey();
 });
 
+// Hotkey specific functions
+// Defines wether a shift key is being held down
 function holdShiftKey(e){
     holdingShift = true;
 }
 function stopHoldShiftKey(e){
     holdingShift = false;
 }
-function reset(){
+// Removes a selection and clearing group ID
+function resetSelection(){
     clearGroup();
-    groupId = undefined;
 }
+// Deletes all selected elements
+function deleteSelection(){
+    document.querySelectorAll('.selected').forEach(element => {
+        const shape = shapes.find(shape => shape.id == element.dataset.id);
+        shape.delete(element);
+    }
+)};
 
-// Every function deactivates the other tools
+// Functions that activates specific tools
 function activateCreatorTool(){
     removeAllTools();
     toolCreate.classList.add('active');
     window.addEventListener('mousedown', createShape);
-}
-function activateDeleteTool(){
-    removeAllTools();
-    toolDelete.classList.add('active');
-    window.addEventListener('mousedown', deleteElement);
 }
 function activateSelectTool(){
     removeAllTools();
     toolSelect.classList.add('active');
     window.addEventListener('mousedown', selectShape);
 }
+
+// Removing all tools and tool specific styling and variables. Should be called in the beginning of all activation functions above
 function removeAllTools(){
     tools.forEach(tool => {
         tool.classList.remove('active');
@@ -71,46 +75,55 @@ function removeAllTools(){
         clearGroup();
         groupId = undefined;
     }
-    window.removeEventListener('mousedown', deleteElement);
     window.removeEventListener('mousedown', createShape);
     window.removeEventListener('mousedown', selectShape);
 }
 
 // Input verification
+// Select the whole value when input is in focus
 document.querySelectorAll('.creator input').forEach(input => {
     input.addEventListener('focusin', () =>{
         input.select();
     });
 });
-
-// Width/Height/Number input verification
-document.querySelectorAll('[data-onlyNumber]').forEach(input => {
-    input.addEventListener('input', () =>{
-        // Only numbers allowed
-        input.value = input.value.replace(/[^0-9]/g, "");
-        // Replace 0 if value starts with 0 and is has 2 or more characters
-        if(input.value.match(/^0/) && input.value.length >= 2) input.value = input.value.replace(/^0/, '');
+// Added an event that verifies the user input in the Creator sidebar module
+document.querySelectorAll('[data-creatorModule] input').forEach(input => {
+    input.addEventListener('input', () => {
+        // Specific verification for inputs that should only contain numbers 
+        if(input.hasAttribute('data-onlyNumber')){
+            input.addEventListener('input', () =>{
+                // Only numbers allowed
+                input.value = input.value.replace(/[^0-9]/g, "");
+                // Replace 0 if value starts with 0 and is has 2 or more characters
+                if(input.value.match(/^0/) && input.value.length >= 2) input.value = input.value.replace(/^0/, '');
+            });
+        }
+        // Specific verification for inputs that should only contain colors in HEX
+        if(input.hasAttribute('data-onlyNumber')){
+            input.addEventListener('input', () =>{
+                // Transform value to lower case and don't allow invalid HEX code characters 
+                input.value = input.value.toLowerCase();
+                input.value = input.value.replace(/[^0-9a-f]/g, '');
+            });
+        }
+        console.log('Typing...');
     });
+    // Added final verification check when you leave an input
     input.addEventListener('focusout', () => {
-        // If empty set value to 0
-        if(input.value == '') input.value = '0';
-    });
-});
-
-// Color/HEX input verification
-document.querySelectorAll('[data-onlyHex]').forEach(input => {
-    input.addEventListener('input', () =>{
-        // Transform value to lower case and don't allow invalid HEX code characters 
-        input.value = input.value.toLowerCase();
-        input.value = input.value.replace(/[^0-9a-f]/g, '');
-    });
-    input.addEventListener('focusout', () => {
+        console.log('Left - ' + input);
         verifyInputs();
     });
 });
 
+// Makes sure that inputs are not empty and that they contain a valid value
 function verifyInputs(){
+    document.querySelectorAll('[data-onlyNumber]').forEach(input => {
+        console.log('Verify Numbers');
+        // If empty set value to 0
+        if(input.value == '') input.value = '0';
+    });
     document.querySelectorAll('[data-onlyHex]').forEach(input => {
+        console.log('Verify Colors');
         // If input is 0 set it to a default
         if(input.value.length == 0) input.value = 'efefef';
         // If the value only has same characters, fill the value with that character. Example: ff = ffffff
@@ -122,7 +135,8 @@ function verifyInputs(){
     }
 )};
 
-// Check local storage and create elements 
+// Local storage
+// If there are items in the shapes array, recreate all of them
 if(JSON.parse(localStorage.getItem('shapes')) != null){
     let storageShapes = JSON.parse(localStorage.getItem('shapes'));
     storageShapes.forEach(obj => {
@@ -132,12 +146,17 @@ if(JSON.parse(localStorage.getItem('shapes')) != null){
     });
 }
 
-// Function that is creating the shape based on the user inputs and click position
+// Creating the shape based on the user inputs and click position
+// Now also supports 'drag to create', so the user can drag a shape that will still get the same color, radius and border as selected
+// Needs comments and a bit for cleaning
 function createShape(e){
     if(e.target.closest('.builder-backdrop') || e.target.closest('.shape')){
+        // Calling this to make sure that all inputs have a valid value
         verifyInputs();
+        // Init the 'drag to create' events
         window.addEventListener('mousemove', startDragCreator);
         window.addEventListener('mouseup', stopDragCreator);
+        // Getting all values from the inputs in the Creator module
         let shapeWidth = inputWidth.value;
         let shapeHeight = inputHeight.value;
         const shapeBorderRadius = inputBorderRadius.value;
@@ -149,6 +168,7 @@ function createShape(e){
         const valueX = e.clientX;
         let topPos = valueY - (shapeHeight / 2);
         let leftPos = valueX - (shapeWidth / 2);
+        // Getting the preview element ready
         let previewShape = document.createElement('div');
         previewShape.style.top = `${valueY}px`;
         previewShape.style.left = `${valueX}px`;
@@ -156,7 +176,9 @@ function createShape(e){
         previewShape.style.border = `${shapeBorderWidth}px #${shapeBorderColor} solid`;
         previewShape.style.borderRadius = `${shapeBorderRadius}px`;
         previewShape.classList.add('preview-shape');
+        // If user drags the mouse instead of clicking, the preview element will appear at the mouse position and change it's size based on where the mouse is compared to the beginning
         function startDragCreator(e){
+            // Checking if the mouse postion is more or less from where is started and defining the 
             if(e.clientX - valueX > 0){
                 previewShape.style.left = `${valueX}px`;
                 previewShape.style.removeProperty('right');
@@ -171,6 +193,7 @@ function createShape(e){
                 previewShape.style.removeProperty('top');
                 previewShape.style.bottom = `${(window.innerHeight - valueY)}px`;
             }
+            // updating preview element width and height
             previewShape.style.width = `${Math.abs(e.clientX - valueX)}px`;
             previewShape.style.height = `${Math.abs(e.clientY - valueY)}px`;
             document.body.append(previewShape);
@@ -200,17 +223,8 @@ function createShape(e){
     }
 }
 
-// Function that will remove a shape from the DOM and local storage when clicked on.
-function deleteElement(e){
-    if(e.target.closest('.shape')){
-        const shape = shapes.find(shape => shape.id == e.target.dataset.id);
-        shape.delete(e);
-    }
-}
-
-
-
-// Function that allows to select one or more elements
+// Single select, multiselect, deselect, drag, multi drag mega function.
+// Needs comments and a bit of cleaning up
 function selectShape(e){
     const valueY = e.clientY;
     const valueX = e.clientX;
@@ -323,6 +337,11 @@ function clearGroup(){
 
 // Function that generates a random ID based with a '-' every 6 charracter
 // Should experiment with export/import
+// Key learning here is: 
+// How to get characters using charCodes
+// Added two arrays together with the .concat() method
+// Getting a variable value based of the result from a callback function
+// Adding extra characters on specific iteration of a for loop
 function generateGroupId(){
     const groupIdCharCodes = [];
     const groupIdLength = 24;

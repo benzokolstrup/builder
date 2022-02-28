@@ -30,7 +30,7 @@ class Shape {
     delete(e){
         const index = shapes.indexOf(this);
         if (index > -1) shapes.splice(index, 1);
-        e.target.remove();
+        e.remove();
         if(shapes.length == 0){
             localStorage.removeItem('shapes');
         }else{
