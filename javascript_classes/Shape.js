@@ -1,5 +1,4 @@
 // Shape class and contructor
-
 class Shape {
     constructor(width, height, borderRadius, top, left, borderWidth, borderColor, backgroundColor, id){
         this.width = width;
