@@ -106,11 +106,9 @@ document.querySelectorAll('[data-creatorModule] input').forEach(input => {
                 input.value = input.value.replace(/[^0-9a-f]/g, '');
             });
         }
-        console.log('Typing...');
     });
     // Added final verification check when you leave an input
     input.addEventListener('focusout', () => {
-        console.log('Left - ' + input);
         verifyInputs();
     });
 });
@@ -118,12 +116,10 @@ document.querySelectorAll('[data-creatorModule] input').forEach(input => {
 // Makes sure that inputs are not empty and that they contain a valid value
 function verifyInputs(){
     document.querySelectorAll('[data-onlyNumber]').forEach(input => {
-        console.log('Verify Numbers');
         // If empty set value to 0
         if(input.value == '') input.value = '0';
     });
     document.querySelectorAll('[data-onlyHex]').forEach(input => {
-        console.log('Verify Colors');
         // If input is 0 set it to a default
         if(input.value.length == 0) input.value = 'efefef';
         // If the value only has same characters, fill the value with that character. Example: ff = ffffff
