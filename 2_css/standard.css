@@ -122,7 +122,7 @@
 }
 
 .selected{
-    outline: #6a9cdd solid 2px;
+    outline: #6a9cdd solid 1px;
 }
 
 .drag-container{

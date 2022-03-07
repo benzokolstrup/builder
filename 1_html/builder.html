@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Builder</title>
     <!--Stylesheets-->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../2_css/standard.css">
     <!--Font Awesome-->
     <script src="https://kit.fontawesome.com/cdafb2c613.js" crossorigin="anonymous"></script>
     <!--Fonts-->
@@ -17,19 +17,9 @@
             <div class="tool select" data-toolSelect>
                 <i class="fas fa-arrow-pointer"></i>
             </div>
-            <!--
-            <div class="tool select" data-toolMove>
-                <i class="fas fa-hand"></i>
-            </div>
-            -->
             <div class="tool create" data-toolCreate>
                 <i class="fas fa-pen-to-square"></i>
             </div>
-            <!--
-            <div class="tool delete" data-toolDelete>
-                <i class="fas fa-trash-can"></i>
-            </div>
-            -->
             <div class="tool create" data-toolCreate>
                 <i class="fas fa-keyboard"></i>
             </div>
@@ -79,7 +69,14 @@
         </div>
     </div>
     <div class="builder-backdrop"></div>
-    <script src="javascript_classes/Shape.js"></script>
-    <script src="script.js"></script>
+    <script src="../3_js/generel/id_generator.js"></script>
+    <script src="../3_js/generel/validation.js"></script>
+
+    <script src="../3_js/classes/Shape.js"></script>
+
+    <script src="../3_js/builder/standard.js"></script>
+    <script src="../3_js/builder/keybinds.js"></script>
+    <script src="../3_js/builder/createShape.js"></script>
+    <script src="../3_js/builder/selectShape.js"></script>
 </body>
 </html>
