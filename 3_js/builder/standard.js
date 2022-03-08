@@ -60,3 +60,20 @@ if(JSON.parse(localStorage.getItem('shapes')) != null){
         shape.create();
     });
 }
+
+
+document.querySelectorAll('.creator-section-title-container').forEach(container =>{
+    container.addEventListener('click', () => {
+        let inputWrapper = container.closest('.creator-section').querySelector('.input-wrapper');
+        let titleIcon = container.querySelector('.fas');
+        if(inputWrapper.classList.contains('active')){
+            inputWrapper.classList.remove('active');
+            titleIcon.classList.remove('fa-caret-up');
+            titleIcon.classList.add('fa-caret-down');
+        }else{
+            inputWrapper.classList.add('active');
+            titleIcon.classList.remove('fa-caret-down');
+            titleIcon.classList.add('fa-caret-up');
+        }
+    });
+});

@@ -1,0 +1,133 @@
+.builder-backdrop{
+    width: 100vw;
+    height: 100vh;
+}
+.navbar{
+    width: 100%;
+    background: #2c4970;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    
+}
+/* Toolbar */
+.toolbar{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.tool{
+    width: 38px;
+    height: 38px;
+    background: #2c4970;
+    box-shadow: inset 0px -0.5px 2px 0px rgb(255 255 255 / 10%),
+                inset 1px 0.5px 1px 0px rgb(255 255 255 / 20%);
+    border: 1px solid #183153;
+    border-left: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #444;
+    cursor: pointer;
+}
+.tool.active{
+    box-shadow: inset 0px 0px 6px 1px rgb(0 0 0 / 30%);
+}
+.tool .fas{
+    color: #fff;
+    font-size: 14px;
+}
+.creator{
+    width: 200px;
+    height: 100%;
+    position: fixed;
+    top: 40px;
+    left: 0;
+    z-index: 100;
+    background: #fff;
+    border-right: 1px #2c4970 solid;
+}
+.creator-wrapper{
+    margin: 0 10px;
+}
+.creator-section{
+    padding: 10px 0;
+    border-bottom: 1px solid #2c4970;
+}
+.creator-section-title-container{
+    cursor: pointer;
+}
+.creator-section-title{
+    margin-right: 5px;
+    font-size: 13px;
+    font-family: 'Courier Prime', monospace;
+}
+.input-wrapper{
+    display: none;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.input-wrapper.active{
+    display: flex;
+}
+.input-container{
+    width: 45%;
+    margin-top: 5px;
+    padding-left: 5px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.input-container input{
+    width: 80%;
+    height: 15px;
+    border-radius: 2px;     
+    padding: 3px;
+    border: none;
+    color: #444;
+    font-family: 'Courier Prime', monospace;
+    font-size: 12px;
+    font-weight: 100;
+    text-transform: uppercase;
+}
+.input-container:focus-within{
+    outline: 1px solid #aaa;
+}
+.input-container input:focus{
+    outline: none;
+    border: none;
+}
+.input-container label{
+    width: 20%;
+    color: #444;
+    font-family: 'Courier Prime', monospace;
+    font-weight: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+.selection-area{
+    position: absolute;
+    border-radius: 3px;
+    background: rgba(196, 213, 224, 0.3);
+    border: 2px solid rgba(196, 213, 224, 0.6);
+}
+.preview-shape{
+    position: absolute;
+}
+.selected{
+    outline: #6a9cdd solid 1px;
+}
+.drag-container{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 20;
+}

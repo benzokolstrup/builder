@@ -21,6 +21,9 @@ document.querySelectorAll('[data-creatorModule] input').forEach(input => {
             input.value = input.value.toLowerCase();
             input.value = input.value.replace(/[^0-9a-f]/g, '');
         }
+        if(input.hasAttribute('data-opacity')){
+            if(input.value.length == 3) input.value = 100;
+        }
     });
     // Added final verification check when you leave an input
     input.addEventListener('focusout', () => {

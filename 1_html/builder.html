@@ -5,11 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Builder</title>
+    <!--Fonts-->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime">
     <!--Stylesheets-->
     <link rel="stylesheet" href="../2_css/standard.css">
+    <link rel="stylesheet" href="../2_css/builder.css">
     <!--Font Awesome-->
     <script src="https://kit.fontawesome.com/cdafb2c613.js" crossorigin="anonymous"></script>
-    <!--Fonts-->
 </head>
 <body>
     <nav class="navbar">
@@ -28,42 +30,59 @@
     <div class="creator" data-creatorModule>
         <div class="creator-wrapper">
             <div class="creator-section">
-                <div class="creator-section-title">
-                    <span>Shape</span>
+                <div class="creator-section-title-container">
+                    <span class="creator-section-title">Shape</span>
+                    <i class="fas fa-caret-up"></i>
                 </div>
-                <div class="input-container">
-                    <label for="width">W</label>
-                    <input type="text" id="width" name="width" value="0" maxlength="6" data-onlyNumber>
-                </div>
-                <div class="input-container">
-                    <label for="height">H</label>
-                    <input type="text" id="height" name="height" value="0" maxlength="6" data-onlyNumber>
-                </div>
-                <div class="input-container">
-                    <label for="borderRadius">R</label>
-                    <input type="text" id="borderRadius" name="borderRadius" value="0" maxlength="6" data-onlyNumber>
-                </div>
-            </div>
-            <div class="creator-section">
-                <div class="creator-section-title">
-                    <span>Background</span>
-                </div>
-                <div class="input-container">
-                    <label for="backgroundColor">#</label>
-                    <input type="text" id="backgroundColor" name="backgroundColor" value="efefef" maxlength="6" data-onlyHex>
+                <div class="input-wrapper active">
+                    <div class="input-container">
+                        <label for="width">W:</label>
+                        <input type="text" id="width" name="width" value="0" maxlength="6" data-onlyNumber>
+                    </div>
+                    <div class="input-container">
+                        <label for="height">H:</label>
+                        <input type="text" id="height" name="height" value="0" maxlength="6" data-onlyNumber>
+                    </div>
+                    <div class="input-container">
+                        <label for="borderRadius">R:</label>
+                        <input type="text" id="borderRadius" name="borderRadius" value="0" maxlength="6" data-onlyNumber>
+                    </div>
+                    <div class="input-container">
+                        <label for="rotate"><i class="fas fa-rotate"></i>:</label>
+                        <input type="text" id="rotate" name="rotate" value="0" maxlength="6" data-onlyNumber>
+                    </div>
                 </div>
             </div>
             <div class="creator-section">
-                <div class="creator-section-title">
-                    <span>Border</span>
+                <div class="creator-section-title-container">
+                    <span class="creator-section-title">Background</span>
+                    <i class="fas fa-caret-down"></i>
                 </div>
-                <div class="input-container">
-                    <label for="borderWidth">W</label>
-                    <input type="text" id="borderWidth" name="borderWidth" value="0" maxlength="6" data-onlyNumber>
+                <div class="input-wrapper">
+                    <div class="input-container">
+                        <label for="backgroundColor">#:</label>
+                        <input type="text" id="backgroundColor" name="backgroundColor" value="efefef" maxlength="6" data-onlyHex>
+                    </div>
+                    <div class="input-container">
+                        <label for="backgroundOpacity">O:</label>
+                        <input type="text" id="backgroundOpacity" name="backgroundOpacity" value="100" maxlength="3" data-opacity data-onlyNumber>
+                    </div>
                 </div>
-                <div class="input-container">
-                    <label for="borderColor">#</label>
-                    <input type="text" id="borderColor" name="borderColor" value="efefef" maxlength="6" data-onlyHex>
+            </div>
+            <div class="creator-section">
+                <div class="creator-section-title-container">
+                    <span class="creator-section-title">Border</span>
+                    <i class="fas fa-caret-down"></i>
+                </div>
+                <div class="input-wrapper">
+                    <div class="input-container">
+                        <label for="borderColor">#:</label>
+                        <input type="text" id="borderColor" name="borderColor" value="efefef" maxlength="6" data-onlyHex>
+                    </div>
+                    <div class="input-container">
+                        <label for="borderWidth">W:</label>
+                        <input type="text" id="borderWidth" name="borderWidth" value="0" maxlength="6" data-onlyNumber>
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,9 +90,7 @@
     <div class="builder-backdrop"></div>
     <script src="../3_js/generel/id_generator.js"></script>
     <script src="../3_js/generel/validation.js"></script>
-
     <script src="../3_js/classes/Shape.js"></script>
-
     <script src="../3_js/builder/standard.js"></script>
     <script src="../3_js/builder/keybinds.js"></script>
     <script src="../3_js/builder/createShape.js"></script>
